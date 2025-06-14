@@ -1,5 +1,6 @@
 import time
 import random
+import keyboard
 
 def get_random_text():
     texts = [
@@ -15,11 +16,13 @@ def wpm_test():
     test_text = get_random_text()
     print("Type the following text:\n")
     print(test_text)
-    input("\nPress Enter when you're ready to start...")
+    print("\nStart typing when you are ready...")
+    print("Press Enter After you are done")
 
-    start_time = time.time()
-    typed_text = input("Start typing:\n")
-    end_time = time.time()
+    if (keyboard.read_event()):
+        start_time = time.time()
+        typed_text = input("Start typing:\n")
+        end_time = time.time()
 
     elapsed_time = (end_time - start_time) / 60  # Convert to minutes
     word_count = len(typed_text.split())
@@ -29,3 +32,5 @@ def wpm_test():
 
 get_random_text()
 wpm_test()
+
+#version 1 of the program doesnt check for mistakes and have to press enter to start and stop 
