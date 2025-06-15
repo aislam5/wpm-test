@@ -20,16 +20,19 @@ def main(stdscr):
   curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK) #The integer is the ID if 1 again it will override the existing pair 
   curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
+
   key = start_screen(stdscr)
-  if(key.lower()!="y"):
-    return
-  wpmTest(stdscr)
+  while key.lower() == "y":
+    wpmTest(stdscr)
+    stdscr.addstr(2,0,"You Completed the Test! Press Y to Play again... ")
+    key = stdscr.getkey()
 
   """stdscr.clear() #Clears the entire Screen
   stdscr.addstr(0,0,"This is the typing test and you shall not pass", curses.color_pair(1)) #Prints first number for row second foor column
   stdscr.refresh() #Need to refresh before doing anything
   key = stdscr.getkey() #This makes sure that the user types something aand then the screen goes away
   print(key)"""
+
   #if not in place then it will refresh super fast and we wont be able to see anything
 
 
@@ -42,36 +45,51 @@ def start_screen(stdscr):
   key = stdscr.getkey()
   return key
   
+
+def display_text(stdscr, target, current, wpm = 0):
+  stdscr.addstr(target)
+  stdscr.addstr(1,0,f"WPM: {wpm}")
+  for i, char in enumerate(current): #gives element of current and index in the list
+    correct_char = target[i]
+    color = curses.color_pair(1)
+    if char.lower() != correct_char.lower():
+      color = curses.color_pair(3)
+    stdscr.addstr(0,i,char, color) #this will make sure that the text will go directly over its value
+
 def wpmTest(stdscr):
   #print target text and then user to print it 
   target_text = "Hey You Boy This is the Target Text for this text"
   current_text = []
-  stdscr.clear() 
-
-  stdscr.addstr(target_text, curses.color_pair(2))
-  stdscr.refresh()
-
+  wpm = 0
+  start_time = time.time()
+  stdscr.nodelay(True) # do not delat for user to hit a key
   #Take a while loop and ask the user to type something in and everytime they type something it appears as either green or black
   while True:
-
-    stdscr.clear() #clear so it doesnt keep the old text everytime
-    stdscr.addstr(target_text)
-
-    #loop through current_text and place the charcaters on the screen
-    for char in current_text:
-      stdscr.addstr(char, curses.color_pair(1))
+    time_elapsed = max(time.time() - start_time, 1)
+    wpm = round((len(current_text)/ (time_elapsed / 60)) / 5) # divide by 5 becuase average word has 5 characters 
+    stdscr.erase() #clear so it doesnt keep the old text everytime
+    display_text(stdscr, target_text, current_text, wpm)
 
     stdscr.refresh() #clears the screen after adding each time so that it doesnt make a long list of things
-   
-    key = stdscr.getkey()
-    if ord(key) == 27: #ASCII REPRESENTAION OF ESCAPE KEY
+    if "".join(current_text).lower() == target_text.lower():
+      stdscr.nodelay(False)
       break
 
-    if key in ("KEY_BACKSPACE"):
+    try:
+      key = stdscr.getkey()
+    except:
+      time.sleep(0.02)
+      continue
+
+    if len(key)==1 and ord(key) == 27: #checks it the len of this is 1 and then it makes its so that the "BACKSPACE" is not put into ord causing a problem
+      break #ord 
+
+    if key in ("KEY_BACKSPACE", '\b' , "\x7f"):
       if len(current_text) > 0:
         current_text.pop() #will remove the last chracter of the list
-    else:
+    elif len(current_text) < len(target_text):
       current_text.append(key) #makes sure that if the above backspace is the case it is not being added to the text
+
 
 
 wrapper(main)
